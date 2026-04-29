@@ -74,6 +74,8 @@ class ETLPipeline:
         return merged.drop(columns=[c for c in merged.columns if c.endswith("_team")])
 
     def _add_metadata(self, df: pd.DataFrame) -> pd.DataFrame:
+        if df.empty:
+            return pd.DataFrame(columns=FINAL_COLUMNS)
         df = df.copy()
         df["run_id"]        = self._run_logger.run_id
         df["schema_version"] = SCHEMA_VERSION
