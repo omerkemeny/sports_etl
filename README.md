@@ -115,14 +115,22 @@ Tables are created automatically on first run. The DDL is in `schema.sql`.
 
 Every pipeline run appends one row per loaded table to `exports/pipeline_run_log.csv` and, when `USE_BIGQUERY=true`, to the `pipeline_run_log` BigQuery table.
 
-Tracked fields: `run_id`, `source`, `table_name`, `rows_loaded`, `status`, `started_at`, `finished_at`, `duration_seconds`, `error_count`, `api_failure_count`, `output_mode`.
+Tracked fields: `run_id`, `source`, `table_name`, `rows_loaded`, `status`, `run_status`, `started_at`, `finished_at`, `duration_seconds`, `error_count`, `api_failure_count`, `output_mode`.
 
-The `pipeline_run_log` BigQuery table can be connected to Looker Studio to monitor:
-- record counts per run
-- pipeline duration over time
-- success / failure status
-- API failure count
-- error count
+### Monitoring Dashboard
+
+A Looker Studio dashboard was created and connected to the BigQuery `pipeline_run_log` table. This satisfies the optional monitoring bonus requirement.
+
+**Dashboard:** https://datastudio.google.com/reporting/69327344-bcf0-4a0e-af62-09136ab595a2
+
+The dashboard tracks:
+- Pipeline success rate
+- Load success rate per source
+- API health (API failure count)
+- Total rows processed
+- Average pipeline duration
+- Total errors
+- Per-run table details
 
 ---
 
