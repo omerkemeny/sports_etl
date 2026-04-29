@@ -57,8 +57,8 @@ class ETLPipeline:
         sports   = ApiSportsTransformer().transform(data["sports"])
         football = ApiFootballTransformer().transform(data["football"])
         return {
-            "api_sports_standardized":   sports["standings"].merge(sports["teams"].drop(columns="source"),   on="team_id", how="left"),
-            "api_football_standardized": football["standings"].merge(football["teams"].drop(columns="source"), on="team_id", how="left"),
+            "api_sports_standardized":   sports["standings"].merge(sports["teams"].drop(columns=["source", "team_name"]),   on="team_id", how="left"),
+            "api_football_standardized": football["standings"].merge(football["teams"].drop(columns=["source", "team_name"]), on="team_id", how="left"),
         }
 
     def _load(self, data: dict) -> None:

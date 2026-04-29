@@ -19,6 +19,7 @@ class ApiFootballExtractor:
                 "params": {
                     "action": cfg.FOOTBALL_STANDINGS_ACTION,
                     "league_id": cfg.FOOTBALL_LEAGUE,
+                    "season_id": cfg.SEASON,
                     "APIkey": cfg.FOOTBALL_KEY,
                 },
             },
@@ -28,6 +29,7 @@ class ApiFootballExtractor:
                 "params": {
                     "action": cfg.FOOTBALL_TEAMS_ACTION,
                     "league_id": cfg.FOOTBALL_LEAGUE,
+                    "season_id": cfg.SEASON,
                     "APIkey": cfg.FOOTBALL_KEY,
                 },
             },
