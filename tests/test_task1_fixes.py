@@ -158,3 +158,7 @@ class TestPipelineTransform:
         for name, df in result.items():
             assert "country" in df.columns, f"{name} missing country"
             assert "venue_name" in df.columns, f"{name} missing venue_name"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
