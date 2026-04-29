@@ -31,5 +31,5 @@ class APIConfig:
     # --- Common Settings ---
     SEASON: int = 2023
     TIMEOUT: int = 30
-    MAX_RETRIES: int = 1
+    MAX_RETRIES: int = 3
     RETRY_DELAY: int = 2

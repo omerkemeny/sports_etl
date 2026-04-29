@@ -95,6 +95,19 @@ class TestMergeSource:
         merged = self.p._merge_source(_standings("x"), _teams("x"))
         assert "goal_diff" not in merged.columns
 
+    def test_empty_standings_returns_empty(self):
+        merged = self.p._merge_source(pd.DataFrame(), _teams("x"))
+        assert merged.empty
+
+    def test_empty_teams_returns_empty(self):
+        merged = self.p._merge_source(_standings("x"), pd.DataFrame())
+        assert merged.empty
+
+    def test_missing_source_column_in_teams_does_not_crash(self):
+        teams_no_source = _teams("x").drop(columns="source")
+        merged = self.p._merge_source(_standings("x"), teams_no_source)
+        assert not merged.empty
+
 
 # ---------------------------------------------------------------------------
 # _add_metadata
