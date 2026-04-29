@@ -134,6 +134,21 @@ The dashboard tracks:
 
 ---
 
+## Schema Versioning
+
+Each row in the standardized tables includes two metadata fields that satisfy the optional schema-evolution/versioning bonus requirement:
+
+| Field | Value | Purpose |
+|---|---|---|
+| `run_id` | e.g. `20240429_120000` | Links every row to the specific pipeline execution that produced it |
+| `schema_version` | `v1` | Identifies the schema definition used to produce the row |
+
+Schema fields are centralised in `etl/transform/standard_schema.py` (`FINAL_COLUMNS`, `SCHEMA_VERSION`). When the schema changes, `SCHEMA_VERSION` is bumped and all downstream consumers can filter by version.
+
+BigQuery's native **time travel** (7-day table history) provides point-in-time recovery of previous table states without requiring separate history tables. Combined with `run_id` and `schema_version`, this gives full traceability at minimal cost.
+
+---
+
 ## Scheduling
 
 Scheduling is not implemented in this submission. The natural approach would be:

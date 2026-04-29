@@ -12,7 +12,7 @@ from etl.transform.api_football_transformer import ApiFootballTransformer
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
 from etl.monitoring.run_logger import RunLogger
-from etl.transform.standard_schema import FINAL_COLUMNS
+from etl.transform.standard_schema import FINAL_COLUMNS, SCHEMA_VERSION
 from etl.utils.validation import validate_dataframe
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,8 @@ class PipelineStats:
 
 class ETLPipeline:
     def __init__(self):
-        self.stats = PipelineStats()
+        self.stats       = PipelineStats()
+        self._run_logger = RunLogger()
 
     def __enter__(self):
         return self
@@ -36,10 +37,10 @@ class ETLPipeline:
 
     def run(self) -> bool:
         logger.info("Starting ETL pipeline")
-        run_logger  = RunLogger()
-        extracted   = self._extract()
-        transformed = self._transform(extracted)
-        self._load(transformed, run_logger)
+        self._run_logger = RunLogger()
+        extracted        = self._extract()
+        transformed      = self._transform(extracted)
+        self._load(transformed, self._run_logger)
         return not self.stats.errors
 
     def _extract(self) -> dict:
@@ -74,8 +75,10 @@ class ETLPipeline:
 
     def _add_metadata(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
-        df["season"]       = APIConfig.SEASON
-        df["last_updated"] = pd.Timestamp.utcnow().floor("s")
+        df["run_id"]        = self._run_logger.run_id
+        df["schema_version"] = SCHEMA_VERSION
+        df["season"]        = APIConfig.SEASON
+        df["last_updated"]  = pd.Timestamp.utcnow().floor("s")
         return df[FINAL_COLUMNS]
 
     def _transform(self, data: dict) -> dict:

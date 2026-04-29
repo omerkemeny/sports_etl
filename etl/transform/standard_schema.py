@@ -1,3 +1,5 @@
+SCHEMA_VERSION = "v1"
+
 STANDINGS_COLUMNS = [
     "rank",
     "team_id",
@@ -21,6 +23,8 @@ TEAMS_COLUMNS = [
 ]
 
 FINAL_COLUMNS = [
+    "run_id",
+    "schema_version",
     "source",
     "season",
     "team_id",
