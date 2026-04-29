@@ -11,6 +11,7 @@ from etl.transform.api_sports_transformer import ApiSportsTransformer
 from etl.transform.api_football_transformer import ApiFootballTransformer
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
+from etl.monitoring.run_logger import RunLogger
 from etl.transform.standard_schema import FINAL_COLUMNS
 from etl.utils.validation import validate_dataframe
 
@@ -35,9 +36,10 @@ class ETLPipeline:
 
     def run(self) -> bool:
         logger.info("Starting ETL pipeline")
+        run_logger  = RunLogger()
         extracted   = self._extract()
         transformed = self._transform(extracted)
-        self._load(transformed)
+        self._load(transformed, run_logger)
         return not self.stats.errors
 
     def _extract(self) -> dict:
@@ -85,12 +87,36 @@ class ETLPipeline:
             "api_football_standardized": self._add_metadata(self._merge_source(football["standings"], football["teams"])),
         }
 
-    def _load(self, data: dict) -> None:
+    def _load(self, data: dict, run_logger: RunLogger) -> None:
         logger.info("PHASE 3: LOAD")
-        cfg    = APIConfig()
-        loader = BigQueryLoader() if cfg.USE_BIGQUERY else CsvLoader()
+        cfg         = APIConfig()
+        loader      = BigQueryLoader() if cfg.USE_BIGQUERY else CsvLoader()
+        output_mode = "bigquery" if cfg.USE_BIGQUERY else "csv"
+
         for table_name, df in data.items():
+            source = df["source"].iloc[0] if not df.empty and "source" in df.columns else ""
+
             if not validate_dataframe(table_name, df):
                 self.stats.errors.append(f"{table_name}: validation failed")
+                run_logger.log(
+                    table_name=table_name, source=source, rows_loaded=0,
+                    status="failed", error_count=len(self.stats.errors),
+                    api_failure_count=len(self.stats.api_failures), output_mode=output_mode,
+                )
                 continue
-            loader.save(table_name, df)
+
+            try:
+                loader.save(table_name, df)
+                run_logger.log(
+                    table_name=table_name, source=source, rows_loaded=len(df),
+                    status="success", error_count=len(self.stats.errors),
+                    api_failure_count=len(self.stats.api_failures), output_mode=output_mode,
+                )
+            except Exception as e:
+                logger.error(f"Load failed for {table_name}: {e}")
+                self.stats.errors.append(f"{table_name}: load failed")
+                run_logger.log(
+                    table_name=table_name, source=source, rows_loaded=0,
+                    status="failed", error_count=len(self.stats.errors),
+                    api_failure_count=len(self.stats.api_failures), output_mode=output_mode,
+                )
