@@ -134,6 +134,11 @@ class TestAddMetadata:
         df = self.p._add_metadata(_merged("x"))
         assert df["last_updated"].iloc[0].microsecond == 0
 
+    def test_empty_df_returns_empty_with_correct_columns(self):
+        result = self.p._add_metadata(pd.DataFrame())
+        assert result.empty
+        assert list(result.columns) == FINAL_COLUMNS
+
     def test_original_not_mutated(self):
         original = _merged("x")
         self.p._add_metadata(original)
