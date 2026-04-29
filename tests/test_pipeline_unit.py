@@ -12,6 +12,7 @@ from etl.extract.api_football_extractor import ApiFootballExtractor
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.pipeline import ETLPipeline
 from etl.transform.standard_schema import FINAL_COLUMNS
+from etl.monitoring.run_logger import RunLogger
 from etl.utils.validation import validate_dataframe
 
 
@@ -215,13 +216,18 @@ class TestBigQueryLoader:
 # ---------------------------------------------------------------------------
 
 class TestLoadRouting:
+    def _mock_run_logger(self):
+        rl = MagicMock(spec=RunLogger)
+        rl.log = MagicMock()
+        return rl
+
     def test_uses_bigquery_loader_when_flag_true(self):
         p = ETLPipeline()
         with patch("etl.pipeline.APIConfig") as MockCfg:
             MockCfg.return_value.USE_BIGQUERY = True
             with patch("etl.pipeline.BigQueryLoader") as MockBQ:
                 MockBQ.return_value.save = MagicMock()
-                p._load({"good": _valid_df()})
+                p._load({"good": _valid_df()}, self._mock_run_logger())
                 MockBQ.assert_called_once()
 
     def test_uses_csv_loader_when_flag_false(self):
@@ -230,7 +236,7 @@ class TestLoadRouting:
             MockCfg.return_value.USE_BIGQUERY = False
             with patch("etl.pipeline.CsvLoader") as MockCSV:
                 MockCSV.return_value.save = MagicMock()
-                p._load({"good": _valid_df()})
+                p._load({"good": _valid_df()}, self._mock_run_logger())
                 MockCSV.assert_called_once()
 
     def test_empty_df_not_saved(self):
@@ -238,7 +244,7 @@ class TestLoadRouting:
         with patch("etl.pipeline.APIConfig") as MockCfg:
             MockCfg.return_value.USE_BIGQUERY = False
             with patch("etl.pipeline.CsvLoader") as MockCSV:
-                p._load({"t": pd.DataFrame()})
+                p._load({"t": pd.DataFrame()}, self._mock_run_logger())
                 MockCSV.return_value.save.assert_not_called()
 
 
