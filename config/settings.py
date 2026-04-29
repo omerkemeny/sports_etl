@@ -22,6 +22,12 @@ class APIConfig:
     FOOTBALL_STANDINGS_ACTION: str = "get_standings"
     FOOTBALL_TEAMS_ACTION: str = "get_teams"
 
+    # --- GCP / BigQuery ---
+    USE_BIGQUERY: bool = os.getenv("USE_BIGQUERY", "false").lower() == "true"
+    GCP_PROJECT_ID: str = os.getenv("GCP_PROJECT_ID", "")
+    BIGQUERY_DATASET: str = os.getenv("BIGQUERY_DATASET", "sports_etl")
+    GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+
     # --- Common Settings ---
     SEASON: int = 2023
     TIMEOUT: int = 30

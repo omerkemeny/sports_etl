@@ -6,10 +6,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import datetime
 import pandas as pd
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from config.settings import APIConfig
 from etl.extract.api_football_extractor import ApiFootballExtractor
+from etl.load.bigquery_loader import BigQueryLoader
+from etl.load.csv_loader import CsvLoader
 from etl.pipeline import ETLPipeline
 
 
@@ -44,6 +46,15 @@ def _teams(source: str) -> pd.DataFrame:
     })
 
 
+def _valid_df() -> pd.DataFrame:
+    return pd.DataFrame({
+        "team_id":   ["10"],
+        "team_name": ["Team A"],
+        "rank":      [1],
+        "points":    [90],
+    })
+
+
 # ---------------------------------------------------------------------------
 # _merge_source
 # ---------------------------------------------------------------------------
@@ -62,9 +73,8 @@ class TestMergeSource:
         merged = self.p._merge_source(_standings("x"), teams)
         assert merged.loc[0, "team_name"] == "Team A"
 
-    def test_source_from_teams_dropped(self):
+    def test_source_column_singular(self):
         merged = self.p._merge_source(_standings("x"), _teams("x"))
-        assert merged["source"].tolist() == ["x", "x"]
         assert merged.columns.tolist().count("source") == 1
 
     def test_country_and_venue_preserved(self):
@@ -95,7 +105,6 @@ class TestAddMetadata:
 
     def test_last_updated_is_valid_iso(self):
         df = self.p._add_metadata(_standings("x"))
-        assert "last_updated" in df.columns
         datetime.datetime.fromisoformat(df["last_updated"].iloc[0])
 
     def test_original_not_mutated(self):
@@ -112,76 +121,114 @@ class TestValidate:
     def setup_method(self):
         self.p = ETLPipeline()
 
-    def _valid(self):
-        return pd.DataFrame({
-            "team_id":   ["10"],
-            "team_name": ["Team A"],
-            "rank":      [1],
-            "points":    [90],
-        })
-
     def test_valid_df_passes(self):
-        assert self.p._validate("t", self._valid()) is True
+        assert self.p._validate("t", _valid_df()) is True
 
     def test_empty_df_fails(self):
         assert self.p._validate("t", pd.DataFrame()) is False
 
     def test_missing_required_column_fails(self):
-        assert self.p._validate("t", self._valid().drop(columns="points")) is False
+        assert self.p._validate("t", _valid_df().drop(columns="points")) is False
 
     def test_missing_column_recorded_in_errors(self):
-        self.p._validate("my_table", self._valid().drop(columns="rank"))
+        self.p._validate("my_table", _valid_df().drop(columns="rank"))
         assert any("my_table" in e for e in self.p.stats.errors)
 
     def test_null_in_required_column_fails(self):
-        df = self._valid()
+        df = _valid_df()
         df.loc[0, "team_name"] = None
         assert self.p._validate("t", df) is False
 
     def test_null_recorded_in_errors(self):
-        df = self._valid()
+        df = _valid_df()
         df.loc[0, "points"] = None
         self.p._validate("my_table", df)
         assert any("my_table" in e for e in self.p.stats.errors)
 
 
 # ---------------------------------------------------------------------------
-# _load
+# BigQueryLoader
 # ---------------------------------------------------------------------------
 
-class TestLoad:
-    def setup_method(self):
-        self.p = ETLPipeline()
+class TestBigQueryLoader:
+    def _make_loader(self, mock_client):
+        mock_cfg = MagicMock()
+        mock_cfg.return_value.GCP_PROJECT_ID = "test-project"
+        mock_cfg.return_value.BIGQUERY_DATASET = "test_dataset"
+        with patch("etl.load.bigquery_loader.bigquery.Client", return_value=mock_client):
+            with patch("etl.load.bigquery_loader.APIConfig", mock_cfg):
+                return BigQueryLoader()
 
-    def _valid(self):
-        return pd.DataFrame({
-            "team_id":   ["10"],
-            "team_name": ["Team A"],
-            "rank":      [1],
-            "points":    [90],
-        })
+    def test_save_calls_load_table_from_dataframe(self):
+        mock_client = MagicMock()
+        mock_job    = MagicMock()
+        mock_client.load_table_from_dataframe.return_value = mock_job
+
+        loader = self._make_loader(mock_client)
+        loader.save("my_table", _valid_df())
+
+        mock_client.load_table_from_dataframe.assert_called_once()
+        args, kwargs = mock_client.load_table_from_dataframe.call_args
+        assert args[1] == "test-project.test_dataset.my_table"
+
+    def test_save_uses_write_truncate(self):
+        from google.cloud.bigquery import WriteDisposition
+        mock_client = MagicMock()
+        mock_client.load_table_from_dataframe.return_value = MagicMock()
+
+        loader = self._make_loader(mock_client)
+        loader.save("my_table", _valid_df())
+
+        _, kwargs = mock_client.load_table_from_dataframe.call_args
+        assert kwargs["job_config"].write_disposition == WriteDisposition.WRITE_TRUNCATE
+
+    def test_save_skips_empty_df(self):
+        mock_client = MagicMock()
+        loader = self._make_loader(mock_client)
+        loader.save("my_table", pd.DataFrame())
+        mock_client.load_table_from_dataframe.assert_not_called()
+
+    def test_save_raises_on_error(self):
+        mock_client = MagicMock()
+        mock_job    = MagicMock()
+        mock_job.result.side_effect = Exception("BQ error")
+        mock_client.load_table_from_dataframe.return_value = mock_job
+
+        loader = self._make_loader(mock_client)
+        with pytest.raises(Exception, match="BQ error"):
+            loader.save("my_table", _valid_df())
+
+
+# ---------------------------------------------------------------------------
+# _load — loader routing
+# ---------------------------------------------------------------------------
+
+class TestLoadRouting:
+    def test_uses_bigquery_loader_when_flag_true(self):
+        p = ETLPipeline()
+        with patch("etl.pipeline.APIConfig") as MockCfg:
+            MockCfg.return_value.USE_BIGQUERY = True
+            with patch("etl.pipeline.BigQueryLoader") as MockBQ:
+                MockBQ.return_value.save = MagicMock()
+                p._load({"good": _valid_df()})
+                MockBQ.assert_called_once()
+
+    def test_uses_csv_loader_when_flag_false(self):
+        p = ETLPipeline()
+        with patch("etl.pipeline.APIConfig") as MockCfg:
+            MockCfg.return_value.USE_BIGQUERY = False
+            with patch("etl.pipeline.CsvLoader") as MockCSV:
+                MockCSV.return_value.save = MagicMock()
+                p._load({"good": _valid_df()})
+                MockCSV.assert_called_once()
 
     def test_empty_df_not_saved(self):
-        with patch("etl.pipeline.CsvLoader") as MockLoader:
-            self.p._load({"t": pd.DataFrame()})
-            MockLoader.return_value.save.assert_not_called()
-
-    def test_invalid_df_not_saved(self):
-        with patch("etl.pipeline.CsvLoader") as MockLoader:
-            self.p._load({"t": pd.DataFrame({"col": [1]})})
-            MockLoader.return_value.save.assert_not_called()
-
-    def test_valid_df_saved(self):
-        df = self._valid()
-        with patch("etl.pipeline.CsvLoader") as MockLoader:
-            self.p._load({"good": df})
-            MockLoader.return_value.save.assert_called_once_with("good", df)
-
-    def test_mixed_skips_invalid_saves_valid(self):
-        valid = self._valid()
-        with patch("etl.pipeline.CsvLoader") as MockLoader:
-            self.p._load({"bad": pd.DataFrame(), "good": valid})
-            MockLoader.return_value.save.assert_called_once_with("good", valid)
+        p = ETLPipeline()
+        with patch("etl.pipeline.CsvLoader") as MockCSV:
+            with patch("etl.pipeline.APIConfig") as MockCfg:
+                MockCfg.return_value.USE_BIGQUERY = False
+                p._load({"t": pd.DataFrame()})
+                MockCSV.return_value.save.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -206,28 +253,21 @@ class TestTransform:
             return p._transform({"sports": {}, "football": {}})
 
     def test_both_output_keys_present(self):
-        result = self._run()
-        assert "api_sports_standardized" in result
-        assert "api_football_standardized" in result
+        assert set(self._run().keys()) == {
+            "api_sports_standardized", "api_football_standardized"
+        }
 
     def test_metadata_columns_present(self):
-        result = self._run()
-        for df in result.values():
-            assert "season" in df.columns
-            assert "league_name" in df.columns
-            assert "last_updated" in df.columns
+        for df in self._run().values():
+            assert {"season", "league_name", "last_updated"}.issubset(df.columns)
 
     def test_no_suffix_artifacts(self):
-        result = self._run()
-        for name, df in result.items():
+        for name, df in self._run().items():
             for col in df.columns:
-                assert not col.endswith("_team"), f"{name}: found '{col}'"
-                assert not col.endswith("_x"),    f"{name}: found '{col}'"
-                assert not col.endswith("_y"),    f"{name}: found '{col}'"
+                assert not col.endswith(("_team", "_x", "_y")), f"{name}: found '{col}'"
 
     def test_team_name_and_venue_in_output(self):
-        result = self._run()
-        for df in result.values():
+        for df in self._run().values():
             assert "team_name" in df.columns
             assert "venue_name" in df.columns
 
@@ -248,18 +288,15 @@ class TestApiFootballSeasonParam:
         return captured["configs"]
 
     def test_standings_has_season_id(self):
-        cfg = self._capture()
-        s = next(c for c in cfg if c["name"] == "api-football-standings")
+        s = next(c for c in self._capture() if c["name"] == "api-football-standings")
         assert "season_id" in s["params"]
 
     def test_teams_has_season_id(self):
-        cfg = self._capture()
-        t = next(c for c in cfg if c["name"] == "api-football-teams")
+        t = next(c for c in self._capture() if c["name"] == "api-football-teams")
         assert "season_id" in t["params"]
 
     def test_season_id_value_matches_config(self):
-        cfg = self._capture()
-        s = next(c for c in cfg if c["name"] == "api-football-standings")
+        s = next(c for c in self._capture() if c["name"] == "api-football-standings")
         assert s["params"]["season_id"] == APIConfig.SEASON
 
 

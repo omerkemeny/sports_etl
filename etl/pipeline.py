@@ -10,6 +10,7 @@ from etl.extract.api_sports_extractor import ApiSportsExtractor
 from etl.extract.api_football_extractor import ApiFootballExtractor
 from etl.transform.api_sports_transformer import ApiSportsTransformer
 from etl.transform.api_football_transformer import ApiFootballTransformer
+from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
 
 logger = logging.getLogger(__name__)
@@ -101,7 +102,8 @@ class ETLPipeline:
 
     def _load(self, data: dict) -> None:
         logger.info("PHASE 3: LOAD")
-        loader = CsvLoader()
+        cfg    = APIConfig()
+        loader = BigQueryLoader() if cfg.USE_BIGQUERY else CsvLoader()
         for table_name, df in data.items():
             if not self._validate(table_name, df):
                 continue
