@@ -1,8 +1,5 @@
-import logging
 from config.settings import APIConfig
 from etl.extract.api_extractor import FootballAPIExtractor
-
-logger = logging.getLogger(__name__)
 
 
 class ApiFootballExtractor:
