@@ -1,8 +1,5 @@
-import logging
 import pandas as pd
 from etl.transform.standard_schema import STANDINGS_COLUMNS, TEAMS_COLUMNS
-
-logger = logging.getLogger(__name__)
 
 
 class ApiSportsTransformer:
