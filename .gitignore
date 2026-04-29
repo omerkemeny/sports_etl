@@ -5,5 +5,7 @@ __pycache__/
 *.pyc
 *.pyo
 .env
-exports/
+exports/*
+!exports/api_sports_standardized.csv
+!exports/api_football_standardized.csv
 config/gcp_key.json
