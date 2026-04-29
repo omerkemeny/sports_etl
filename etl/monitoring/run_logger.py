@@ -13,8 +13,8 @@ LOG_CSV = EXPORTS_DIR / "pipeline_run_log.csv"
 
 class RunLogger:
     def __init__(self):
-        self.run_id      = pd.Timestamp.utcnow().strftime("%Y%m%d_%H%M%S")
-        self.started_at  = pd.Timestamp.utcnow().floor("s")
+        self.run_id     = pd.Timestamp.utcnow().strftime("%Y%m%d_%H%M%S")
+        self.started_at = pd.Timestamp.utcnow().floor("s")
 
     def log(
         self,
@@ -22,6 +22,7 @@ class RunLogger:
         source: str,
         rows_loaded: int,
         status: str,
+        run_status: str,
         error_count: int,
         api_failure_count: int,
         output_mode: str,
@@ -33,6 +34,7 @@ class RunLogger:
             "table_name":        table_name,
             "rows_loaded":       rows_loaded,
             "status":            status,
+            "run_status":        run_status,
             "started_at":        self.started_at,
             "finished_at":       finished_at,
             "duration_seconds":  (finished_at - self.started_at).total_seconds(),
