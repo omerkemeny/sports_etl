@@ -1,4 +1,3 @@
-import datetime
 import logging
 from dataclasses import dataclass, field
 from typing import List
@@ -72,7 +71,7 @@ class ETLPipeline:
     def _add_metadata(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
         df["season"]       = APIConfig.SEASON
-        df["last_updated"] = datetime.datetime.now(datetime.UTC).isoformat()
+        df["last_updated"] = pd.Timestamp.utcnow().floor("s")
         return df[FINAL_COLUMNS]
 
     def _transform(self, data: dict) -> dict:

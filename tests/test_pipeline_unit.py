@@ -112,9 +112,13 @@ class TestAddMetadata:
         df = self.p._add_metadata(_merged("x"))
         assert "league_name" not in df.columns
 
-    def test_last_updated_is_valid_iso(self):
+    def test_last_updated_is_timestamp(self):
         df = self.p._add_metadata(_merged("x"))
-        datetime.datetime.fromisoformat(df["last_updated"].iloc[0])
+        assert isinstance(df["last_updated"].iloc[0], pd.Timestamp)
+
+    def test_last_updated_has_no_microseconds(self):
+        df = self.p._add_metadata(_merged("x"))
+        assert df["last_updated"].iloc[0].microsecond == 0
 
     def test_original_not_mutated(self):
         original = _merged("x")
