@@ -12,6 +12,7 @@ from etl.transform.api_sports_transformer import ApiSportsTransformer
 from etl.transform.api_football_transformer import ApiFootballTransformer
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
+from etl.transform.standard_schema import FINAL_COLUMNS
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +72,8 @@ class ETLPipeline:
     def _add_metadata(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
         df["season"]       = APIConfig.SEASON
-        df["league_name"]  = "Premier League"
         df["last_updated"] = datetime.datetime.now(datetime.UTC).isoformat()
-        return df
+        return df[FINAL_COLUMNS]
 
     def _transform(self, data: dict) -> dict:
         logger.info("PHASE 2: TRANSFORM")

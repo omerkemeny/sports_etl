@@ -11,8 +11,8 @@ from unittest.mock import patch, MagicMock
 from config.settings import APIConfig
 from etl.extract.api_football_extractor import ApiFootballExtractor
 from etl.load.bigquery_loader import BigQueryLoader
-from etl.load.csv_loader import CsvLoader
 from etl.pipeline import ETLPipeline
+from etl.transform.standard_schema import FINAL_COLUMNS
 
 
 # ---------------------------------------------------------------------------
@@ -31,7 +31,6 @@ def _standings(source: str) -> pd.DataFrame:
         "lost":          [4,  8],
         "goals_for":     [95, 80],
         "goals_against": [30, 40],
-        "goal_diff":     [65, 40],
         "source":        [source, source],
     })
 
@@ -44,6 +43,12 @@ def _teams(source: str) -> pd.DataFrame:
         "venue_name": ["Stadium A", "Stadium B"],
         "source":     [source, source],
     })
+
+
+def _merged(source: str) -> pd.DataFrame:
+    """Standings + teams merged — ready for _add_metadata."""
+    p = ETLPipeline()
+    return p._merge_source(_standings(source), _teams(source))
 
 
 def _valid_df() -> pd.DataFrame:
@@ -86,6 +91,10 @@ class TestMergeSource:
         merged = self.p._merge_source(_standings("x"), _teams("x"))
         assert len(merged) == 2
 
+    def test_goal_diff_not_present(self):
+        merged = self.p._merge_source(_standings("x"), _teams("x"))
+        assert "goal_diff" not in merged.columns
+
 
 # ---------------------------------------------------------------------------
 # _add_metadata
@@ -96,21 +105,25 @@ class TestAddMetadata:
         self.p = ETLPipeline()
 
     def test_season_equals_config(self):
-        df = self.p._add_metadata(_standings("x"))
+        df = self.p._add_metadata(_merged("x"))
         assert (df["season"] == APIConfig.SEASON).all()
 
-    def test_league_name_is_premier_league(self):
-        df = self.p._add_metadata(_standings("x"))
-        assert (df["league_name"] == "Premier League").all()
+    def test_league_name_not_present(self):
+        df = self.p._add_metadata(_merged("x"))
+        assert "league_name" not in df.columns
 
     def test_last_updated_is_valid_iso(self):
-        df = self.p._add_metadata(_standings("x"))
+        df = self.p._add_metadata(_merged("x"))
         datetime.datetime.fromisoformat(df["last_updated"].iloc[0])
 
     def test_original_not_mutated(self):
-        original = _standings("x")
+        original = _merged("x")
         self.p._add_metadata(original)
         assert "season" not in original.columns
+
+    def test_output_columns_match_final_schema(self):
+        df = self.p._add_metadata(_merged("x"))
+        assert list(df.columns) == FINAL_COLUMNS
 
 
 # ---------------------------------------------------------------------------
@@ -161,24 +174,19 @@ class TestBigQueryLoader:
 
     def test_save_calls_load_table_from_dataframe(self):
         mock_client = MagicMock()
-        mock_job    = MagicMock()
-        mock_client.load_table_from_dataframe.return_value = mock_job
-
+        mock_client.load_table_from_dataframe.return_value = MagicMock()
         loader = self._make_loader(mock_client)
         loader.save("my_table", _valid_df())
-
         mock_client.load_table_from_dataframe.assert_called_once()
-        args, kwargs = mock_client.load_table_from_dataframe.call_args
+        args, _ = mock_client.load_table_from_dataframe.call_args
         assert args[1] == "test-project.test_dataset.my_table"
 
     def test_save_uses_write_truncate(self):
         from google.cloud.bigquery import WriteDisposition
         mock_client = MagicMock()
         mock_client.load_table_from_dataframe.return_value = MagicMock()
-
         loader = self._make_loader(mock_client)
         loader.save("my_table", _valid_df())
-
         _, kwargs = mock_client.load_table_from_dataframe.call_args
         assert kwargs["job_config"].write_disposition == WriteDisposition.WRITE_TRUNCATE
 
@@ -190,10 +198,9 @@ class TestBigQueryLoader:
 
     def test_save_raises_on_error(self):
         mock_client = MagicMock()
-        mock_job    = MagicMock()
+        mock_job = MagicMock()
         mock_job.result.side_effect = Exception("BQ error")
         mock_client.load_table_from_dataframe.return_value = mock_job
-
         loader = self._make_loader(mock_client)
         with pytest.raises(Exception, match="BQ error"):
             loader.save("my_table", _valid_df())
@@ -224,9 +231,9 @@ class TestLoadRouting:
 
     def test_empty_df_not_saved(self):
         p = ETLPipeline()
-        with patch("etl.pipeline.CsvLoader") as MockCSV:
-            with patch("etl.pipeline.APIConfig") as MockCfg:
-                MockCfg.return_value.USE_BIGQUERY = False
+        with patch("etl.pipeline.APIConfig") as MockCfg:
+            MockCfg.return_value.USE_BIGQUERY = False
+            with patch("etl.pipeline.CsvLoader") as MockCSV:
                 p._load({"t": pd.DataFrame()})
                 MockCSV.return_value.save.assert_not_called()
 
@@ -257,19 +264,22 @@ class TestTransform:
             "api_sports_standardized", "api_football_standardized"
         }
 
-    def test_metadata_columns_present(self):
+    def test_output_matches_final_schema(self):
         for df in self._run().values():
-            assert {"season", "league_name", "last_updated"}.issubset(df.columns)
+            assert list(df.columns) == FINAL_COLUMNS
+
+    def test_no_goal_diff_in_output(self):
+        for df in self._run().values():
+            assert "goal_diff" not in df.columns
+
+    def test_no_league_name_in_output(self):
+        for df in self._run().values():
+            assert "league_name" not in df.columns
 
     def test_no_suffix_artifacts(self):
         for name, df in self._run().items():
             for col in df.columns:
                 assert not col.endswith(("_team", "_x", "_y")), f"{name}: found '{col}'"
-
-    def test_team_name_and_venue_in_output(self):
-        for df in self._run().values():
-            assert "team_name" in df.columns
-            assert "venue_name" in df.columns
 
 
 # ---------------------------------------------------------------------------

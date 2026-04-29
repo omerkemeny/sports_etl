@@ -9,7 +9,6 @@ STANDINGS_COLUMNS = [
     "lost",
     "goals_for",
     "goals_against",
-    "goal_diff",
     "source",
 ]
 
@@ -19,4 +18,22 @@ TEAMS_COLUMNS = [
     "country",
     "venue_name",
     "source",
+]
+
+FINAL_COLUMNS = [
+    "source",
+    "season",
+    "team_id",
+    "team_name",
+    "country",
+    "venue_name",
+    "rank",
+    "played",
+    "won",
+    "drawn",
+    "lost",
+    "goals_for",
+    "goals_against",
+    "points",
+    "last_updated",
 ]
