@@ -59,8 +59,11 @@ class ETLPipeline:
         return raw
 
     def _merge_source(self, standings: pd.DataFrame, teams: pd.DataFrame) -> pd.DataFrame:
+        if standings.empty or teams.empty:
+            logger.warning("_merge_source: empty standings or teams, returning empty DataFrame")
+            return pd.DataFrame()
         merged = standings.merge(
-            teams.drop(columns="source"),
+            teams.drop(columns="source", errors="ignore"),
             on="team_id",
             how="left",
             suffixes=("", "_team"),

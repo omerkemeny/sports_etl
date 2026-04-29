@@ -91,7 +91,7 @@ Output is written to `exports/api_sports_standardized.csv` and `exports/api_foot
 ## BigQuery Setup
 
 1. Create a GCP project and a BigQuery dataset named `sports_etl`.
-2. Create a service account with the **BigQuery Data Editor** role.
+2. Create a service account with the **BigQuery Data Editor** and **BigQuery Job User** roles. Both are required: Data Editor grants table write access, Job User allows the client to execute load jobs.
 3. Download the JSON key and save it as `config/gcp_key.json` (never committed).
 4. Update `.env`:
 
