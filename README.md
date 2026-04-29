@@ -134,6 +134,12 @@ The dashboard tracks:
 
 ---
 
+## Schema Versioning
+
+For lightweight versioning, each standardized row includes `run_id` and `schema_version`. This allows records to be traced back to a specific pipeline execution and schema mapping version. Since BigQuery is used as the storage layer, native table history/time travel can also be used for short-term recovery of previous table states. For longer-term audit requirements, this could be extended to append-only snapshot tables.
+
+---
+
 ## Scheduling
 
 Scheduling is not implemented in this submission. The natural approach would be:

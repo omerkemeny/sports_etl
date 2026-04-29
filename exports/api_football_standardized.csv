@@ -1,21 +1,21 @@
-source,season,team_id,team_name,country,venue_name,rank,played,won,drawn,lost,goals_for,goals_against,points,last_updated
-api-football,2023,141,Arsenal,England,Emirates Stadium,1,34,22,7,5,64,26,73,2026-04-29T10:55:37.917316+00:00
-api-football,2023,80,Manchester City,England,Etihad Stadium,2,33,21,7,5,66,29,70,2026-04-29T10:55:37.917316+00:00
-api-football,2023,102,Manchester Utd,England,Old Trafford,3,34,17,10,7,60,46,61,2026-04-29T10:55:37.917316+00:00
-api-football,2023,84,Liverpool,England,Anfield,4,34,17,7,10,57,44,58,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3088,Aston Villa,England,Villa Park,5,34,17,7,10,47,42,58,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3079,Brighton,England,The American Express Community Stadium,6,34,13,11,10,48,39,50,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3071,Bournemouth,England,Vitality Stadium,7,34,11,16,7,52,52,49,2026-04-29T10:55:37.917316+00:00
-api-football,2023,88,Chelsea,England,Stamford Bridge,8,34,13,9,12,53,45,48,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3086,Brentford,England,Brentford Community Stadium,9,34,13,9,12,49,46,48,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3085,Fulham,England,Craven Cottage,10,34,14,6,14,44,46,48,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3073,Everton,England,Goodison Park,11,34,13,8,13,41,41,47,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3111,Sunderland,England,Stadium of Light,12,34,12,10,12,36,45,46,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3429,Crystal Palace,England,Selhurst Park,13,33,11,10,12,36,39,43,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3100,Newcastle,England,St. James' Park,14,34,12,6,16,46,50,42,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3103,Leeds,England,Elland Road,15,34,9,13,12,44,51,40,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3089,Nottingham,England,The City Ground,16,34,10,9,15,41,45,39,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3081,West Ham,England,London Stadium,17,34,9,9,16,42,58,36,2026-04-29T10:55:37.917316+00:00
-api-football,2023,164,Tottenham,England,Tottenham Hotspur Stadium,18,34,8,10,16,43,53,34,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3075,Burnley,England,Turf Moor,19,34,4,8,22,34,68,20,2026-04-29T10:55:37.917316+00:00
-api-football,2023,3077,Wolves,England,Molineux Stadium,20,34,3,8,23,24,62,17,2026-04-29T10:55:37.917316+00:00
+run_id,schema_version,source,season,team_id,team_name,country,venue_name,rank,played,won,drawn,lost,goals_for,goals_against,points,last_updated
+20260429_144846,v1,api-football,2023,141,Arsenal,England,Emirates Stadium,1,34,22,7,5,64,26,73,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,80,Manchester City,England,Etihad Stadium,2,33,21,7,5,66,29,70,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,102,Manchester Utd,England,Old Trafford,3,34,17,10,7,60,46,61,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,84,Liverpool,England,Anfield,4,34,17,7,10,57,44,58,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3088,Aston Villa,England,Villa Park,5,34,17,7,10,47,42,58,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3079,Brighton,England,The American Express Community Stadium,6,34,13,11,10,48,39,50,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3071,Bournemouth,England,Vitality Stadium,7,34,11,16,7,52,52,49,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,88,Chelsea,England,Stamford Bridge,8,34,13,9,12,53,45,48,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3086,Brentford,England,Brentford Community Stadium,9,34,13,9,12,49,46,48,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3085,Fulham,England,Craven Cottage,10,34,14,6,14,44,46,48,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3073,Everton,England,Goodison Park,11,34,13,8,13,41,41,47,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3111,Sunderland,England,Stadium of Light,12,34,12,10,12,36,45,46,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3429,Crystal Palace,England,Selhurst Park,13,33,11,10,12,36,39,43,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3100,Newcastle,England,St. James' Park,14,34,12,6,16,46,50,42,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3103,Leeds,England,Elland Road,15,34,9,13,12,44,51,40,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3089,Nottingham,England,The City Ground,16,34,10,9,15,41,45,39,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3081,West Ham,England,London Stadium,17,34,9,9,16,42,58,36,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,164,Tottenham,England,Tottenham Hotspur Stadium,18,34,8,10,16,43,53,34,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3075,Burnley,England,Turf Moor,19,34,4,8,22,34,68,20,2026-04-29 14:48:48+00:00
+20260429_144846,v1,api-football,2023,3077,Wolves,England,Molineux Stadium,20,34,3,8,23,24,62,17,2026-04-29 14:48:48+00:00
