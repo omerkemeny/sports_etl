@@ -3,7 +3,6 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import datetime
 import pandas as pd
 import pytest
 from unittest.mock import patch, MagicMock
@@ -13,6 +12,7 @@ from etl.extract.api_football_extractor import ApiFootballExtractor
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.pipeline import ETLPipeline
 from etl.transform.standard_schema import FINAL_COLUMNS
+from etl.utils.validation import validate_dataframe
 
 
 # ---------------------------------------------------------------------------
@@ -131,36 +131,23 @@ class TestAddMetadata:
 
 
 # ---------------------------------------------------------------------------
-# _validate
+# validate_dataframe (etl/utils/validation.py)
 # ---------------------------------------------------------------------------
 
-class TestValidate:
-    def setup_method(self):
-        self.p = ETLPipeline()
-
+class TestValidateDataframe:
     def test_valid_df_passes(self):
-        assert self.p._validate("t", _valid_df()) is True
+        assert validate_dataframe("t", _valid_df()) is True
 
     def test_empty_df_fails(self):
-        assert self.p._validate("t", pd.DataFrame()) is False
+        assert validate_dataframe("t", pd.DataFrame()) is False
 
     def test_missing_required_column_fails(self):
-        assert self.p._validate("t", _valid_df().drop(columns="points")) is False
-
-    def test_missing_column_recorded_in_errors(self):
-        self.p._validate("my_table", _valid_df().drop(columns="rank"))
-        assert any("my_table" in e for e in self.p.stats.errors)
+        assert validate_dataframe("t", _valid_df().drop(columns="points")) is False
 
     def test_null_in_required_column_fails(self):
         df = _valid_df()
         df.loc[0, "team_name"] = None
-        assert self.p._validate("t", df) is False
-
-    def test_null_recorded_in_errors(self):
-        df = _valid_df()
-        df.loc[0, "points"] = None
-        self.p._validate("my_table", df)
-        assert any("my_table" in e for e in self.p.stats.errors)
+        assert validate_dataframe("t", df) is False
 
 
 # ---------------------------------------------------------------------------

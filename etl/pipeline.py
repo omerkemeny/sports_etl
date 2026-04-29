@@ -12,10 +12,9 @@ from etl.transform.api_football_transformer import ApiFootballTransformer
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
 from etl.transform.standard_schema import FINAL_COLUMNS
+from etl.utils.validation import validate_dataframe
 
 logger = logging.getLogger(__name__)
-
-_REQUIRED_COLUMNS = {"team_id", "team_name", "rank", "points"}
 
 
 @dataclass
@@ -83,27 +82,12 @@ class ETLPipeline:
             "api_football_standardized": self._add_metadata(self._merge_source(football["standings"], football["teams"])),
         }
 
-    def _validate(self, table_name: str, df: pd.DataFrame) -> bool:
-        if df.empty:
-            logger.warning(f"Validation [{table_name}]: empty DataFrame, skipping")
-            return False
-        missing = _REQUIRED_COLUMNS - set(df.columns)
-        if missing:
-            logger.error(f"Validation [{table_name}]: missing required columns {missing}")
-            self.stats.errors.append(f"{table_name}: missing columns {missing}")
-            return False
-        null_cols = [c for c in _REQUIRED_COLUMNS if df[c].isnull().any()]
-        if null_cols:
-            logger.error(f"Validation [{table_name}]: nulls in required columns {null_cols}")
-            self.stats.errors.append(f"{table_name}: nulls in {null_cols}")
-            return False
-        return True
-
     def _load(self, data: dict) -> None:
         logger.info("PHASE 3: LOAD")
         cfg    = APIConfig()
         loader = BigQueryLoader() if cfg.USE_BIGQUERY else CsvLoader()
         for table_name, df in data.items():
-            if not self._validate(table_name, df):
+            if not validate_dataframe(table_name, df):
+                self.stats.errors.append(f"{table_name}: validation failed")
                 continue
             loader.save(table_name, df)
