@@ -92,31 +92,36 @@ class ETLPipeline:
         cfg         = APIConfig()
         loader      = BigQueryLoader() if cfg.USE_BIGQUERY else CsvLoader()
         output_mode = "bigquery" if cfg.USE_BIGQUERY else "csv"
+        pending     = []
 
         for table_name, df in data.items():
-            source = df["source"].iloc[0] if not df.empty and "source" in df.columns else ""
+            source = table_name.replace("_standardized", "")
 
             if not validate_dataframe(table_name, df):
                 self.stats.errors.append(f"{table_name}: validation failed")
-                run_logger.log(
-                    table_name=table_name, source=source, rows_loaded=0,
-                    status="failed", error_count=len(self.stats.errors),
-                    api_failure_count=len(self.stats.api_failures), output_mode=output_mode,
-                )
+                pending.append({"table_name": table_name, "source": source, "rows_loaded": 0, "status": "failed"})
                 continue
 
             try:
                 loader.save(table_name, df)
-                run_logger.log(
-                    table_name=table_name, source=source, rows_loaded=len(df),
-                    status="success", error_count=len(self.stats.errors),
-                    api_failure_count=len(self.stats.api_failures), output_mode=output_mode,
-                )
+                pending.append({"table_name": table_name, "source": source, "rows_loaded": len(df), "status": "success"})
             except Exception as e:
                 logger.error(f"Load failed for {table_name}: {e}")
                 self.stats.errors.append(f"{table_name}: load failed")
-                run_logger.log(
-                    table_name=table_name, source=source, rows_loaded=0,
-                    status="failed", error_count=len(self.stats.errors),
-                    api_failure_count=len(self.stats.api_failures), output_mode=output_mode,
-                )
+                pending.append({"table_name": table_name, "source": source, "rows_loaded": 0, "status": "failed"})
+
+        statuses = [p["status"] for p in pending]
+        if all(s == "success" for s in statuses):
+            run_status = "success"
+        elif all(s == "failed" for s in statuses):
+            run_status = "failed"
+        else:
+            run_status = "partial"
+
+        for entry in pending:
+            run_logger.log(
+                table_name=entry["table_name"], source=entry["source"],
+                rows_loaded=entry["rows_loaded"], status=entry["status"],
+                run_status=run_status, error_count=len(self.stats.errors),
+                api_failure_count=len(self.stats.api_failures), output_mode=output_mode,
+            )
