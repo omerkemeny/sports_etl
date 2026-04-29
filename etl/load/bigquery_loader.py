@@ -26,7 +26,7 @@ class BigQueryLoader:
         try:
             job = self._client.load_table_from_dataframe(df, table_id, job_config=job_config)
             job.result()
-            logger.info(f"BigQueryLoader: loaded {len(df)} rows → {table_id}")
+            logger.info(f"BigQueryLoader: loaded {len(df)} rows -> {table_id}")
         except Exception as e:
             logger.error(f"BigQueryLoader: failed to load {table_id}: {e}")
             raise
