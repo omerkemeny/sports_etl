@@ -8,8 +8,6 @@ logger = logging.getLogger(__name__)
 class ApiFootballTransformer:
     def transform_standings(self, raw: list) -> pd.DataFrame:
         df = pd.DataFrame(raw)
-        gf = df["overall_league_GF"].astype(int)
-        ga = df["overall_league_GA"].astype(int)
         return pd.DataFrame({
             "rank":          df["overall_league_position"].astype(int),
             "team_id":       df["team_id"].astype(str),
@@ -19,9 +17,8 @@ class ApiFootballTransformer:
             "won":           df["overall_league_W"].astype(int),
             "drawn":         df["overall_league_D"].astype(int),
             "lost":          df["overall_league_L"].astype(int),
-            "goals_for":     gf,
-            "goals_against": ga,
-            "goal_diff":     gf - ga,
+            "goals_for":     df["overall_league_GF"].astype(int),
+            "goals_against": df["overall_league_GA"].astype(int),
             "source":        "api-football",
         })[STANDINGS_COLUMNS]
 

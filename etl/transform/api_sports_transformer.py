@@ -20,7 +20,6 @@ class ApiSportsTransformer:
             "lost":          df["all.lose"],
             "goals_for":     df["all.goals.for"],
             "goals_against": df["all.goals.against"],
-            "goal_diff":     df["goalsDiff"],
             "source":        "api-sports",
         })[STANDINGS_COLUMNS]
 
