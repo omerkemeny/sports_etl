@@ -71,7 +71,7 @@ class ETLPipeline:
         df = df.copy()
         df["season"]       = APIConfig.SEASON
         df["league_name"]  = "Premier League"
-        df["last_updated"] = datetime.datetime.utcnow().isoformat()
+        df["last_updated"] = datetime.datetime.now(datetime.UTC).isoformat()
         return df
 
     def _transform(self, data: dict) -> dict:
