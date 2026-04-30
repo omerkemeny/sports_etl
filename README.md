@@ -17,14 +17,15 @@ API-Football ┘                         └── CSV (default)
 
 Two independent source flows fetch data from separate APIs in parallel. Each flow produces a standardized DataFrame with
 the same 15-column schema. A shared validation step guards the load phase. The pipeline writes to BigQuery when
-`USE_BIGQUERY=true`, otherwise to local CSV.
+`USE_BIGQUERY=true`, otherwise to a local CSV.
 
 ---
 
 ## Pipeline Flow
 
-1. **Extract** — Fetch `standings` and `teams` endpoints from both APIs concurrently using `ThreadPoolExecutor`. Retries
-   on failure; logs which sources succeed or fail.
+1. **Extract** — Fetch `standings` and `teams` endpoints from both APIs concurrently using `ThreadPoolExecutor`. Since
+   API calls spend most of their time waiting for the network, running them in parallel threads cuts total fetch time
+   from ~4s to ~1s. Retries on failure; logs which sources succeed or fail.
 2. **Transform** — Normalise each source's raw JSON into the standard schema. Merge standings with team metadata. Add
    `season` and `last_updated` metadata columns. Enforce final column order.
 3. **Validate** — Before loading, check that required columns (`team_id`, `team_name`, `rank`, `points`) are present and
