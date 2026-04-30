@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from config.settings import APIConfig
+from config.consts import SEASON, REQUIRED_COLUMNS
 from etl.extract.api_football_extractor import ApiFootballExtractor
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.pipeline import ETLPipeline
@@ -120,7 +121,7 @@ class TestAddMetadata:
 
     def test_season_equals_config(self):
         df = self.p._add_metadata(_merged("x"))
-        assert (df["season"] == APIConfig.SEASON).all()
+        assert (df["season"] == SEASON).all()
 
     def test_league_name_not_present(self):
         df = self.p._add_metadata(_merged("x"))
@@ -322,7 +323,7 @@ class TestApiFootballSeasonParam:
 
     def test_season_id_value_matches_config(self):
         s = next(c for c in self._capture() if c["name"] == "api-football-standings")
-        assert s["params"]["season_id"] == APIConfig.SEASON
+        assert s["params"]["season_id"] == SEASON
 
 
 if __name__ == "__main__":
