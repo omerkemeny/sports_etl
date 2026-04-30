@@ -1,3 +1,9 @@
+from pathlib import Path
+
+EXPORTS_DIR      = Path(__file__).resolve().parent.parent / "exports"
+LOG_CSV          = EXPORTS_DIR / "pipeline_run_log.csv"
+MONITORING_TABLE = "pipeline_run_log"
+
 REQUIRED_COLUMNS = {"team_id", "team_name", "rank", "points"}
 
 # --- API-Sports ---

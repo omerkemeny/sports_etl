@@ -1,14 +1,11 @@
 import logging
-from pathlib import Path
 
 import pandas as pd
 
+from config.consts import EXPORTS_DIR, LOG_CSV, MONITORING_TABLE
 from config.settings import APIConfig
 
 logger = logging.getLogger(__name__)
-
-EXPORTS_DIR = Path(__file__).resolve().parent.parent.parent / "exports"
-LOG_CSV = EXPORTS_DIR / "pipeline_run_log.csv"
 
 
 class RunLogger:
@@ -56,7 +53,7 @@ class RunLogger:
             from google.cloud import bigquery
             cfg      = APIConfig()
             client   = bigquery.Client(project=cfg.GCP_PROJECT_ID)
-            table_id = f"{cfg.GCP_PROJECT_ID}.{cfg.BIGQUERY_DATASET}.pipeline_run_log"
+            table_id = f"{cfg.GCP_PROJECT_ID}.{cfg.BIGQUERY_DATASET}.{MONITORING_TABLE}"
             job_config = bigquery.LoadJobConfig(
                 write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
             )
