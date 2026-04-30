@@ -279,11 +279,7 @@ output_mode
 
 A Looker Studio dashboard was created and connected to the BigQuery `pipeline_run_log` table. This satisfies the optional monitoring bonus requirement.
 
-Dashboard:
-
-```text
-https://datastudio.google.com/reporting/69327344-bcf0-4a0e-af62-09136ab595a2
-```
+[Looker Studio Dashboard](https://datastudio.google.com/reporting/69327344-bcf0-4a0e-af62-09136ab595a2)
 
 The dashboard tracks:
 
