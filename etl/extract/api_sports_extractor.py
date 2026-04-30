@@ -16,12 +16,14 @@ class ApiSportsExtractor:
                 "url":     f"{SPORTS_URL}{SPORTS_STANDINGS_PATH}",
                 "headers": headers,
                 "params":  {"league": SPORTS_LEAGUE, "season": SEASON},
+                "unwrap":  lambda data: data.get('response'),
             },
             {
                 "name":    "api-sports-teams",
                 "url":     f"{SPORTS_URL}{SPORTS_TEAMS_PATH}",
                 "headers": headers,
                 "params":  {"league": SPORTS_LEAGUE, "season": SEASON},
+                "unwrap":  lambda data: data.get('response'),
             },
         ]
         results = self._http.fetch_all_sources(source_configs, max_workers=2)

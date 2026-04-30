@@ -161,16 +161,47 @@ audit requirements, this could be extended to append-only snapshot tables.
 
 ## Scheduling
 
-Scheduling is not implemented in this submission. The natural approach would be:
+Scheduling is not implemented in this submission. The natural deployment approach is **Cloud Run Jobs** + **Cloud Scheduler**.
 
-- **Cloud Run** to containerise and run the pipeline on demand.
-- **Cloud Scheduler** to trigger the Cloud Run job on a cron schedule (e.g. weekly, or daily during the season).
+### 1. Build and push the container
+
+```bash
+gcloud builds submit --tag gcr.io/<PROJECT_ID>/sports-etl
+```
+
+### 2. Create the Cloud Run job
+
+```bash
+gcloud run jobs create sports-etl-job \
+  --image gcr.io/<PROJECT_ID>/sports-etl \
+  --region europe-west1 \
+  --service-account sports-etl-sa@<PROJECT_ID>.iam.gserviceaccount.com \
+  --set-env-vars USE_BIGQUERY=true,GCP_PROJECT_ID=<PROJECT_ID>,BIGQUERY_DATASET=sports_etl,API_SPORTS_KEY=<KEY>,API_FOOTBALL_KEY=<KEY>
+```
+
+On Cloud Run, Application Default Credentials are provided automatically by the attached service account —
+`GOOGLE_APPLICATION_CREDENTIALS` is not required and should not be set.
+
+The service account needs the **BigQuery Data Editor** and **BigQuery Job User** roles (same as local setup).
+
+### 3. Schedule with Cloud Scheduler
+
+```bash
+gcloud scheduler jobs create http sports-etl-weekly \
+  --location europe-west1 \
+  --schedule "0 9 * * 1" \
+  --uri "https://run.googleapis.com/v2/projects/<PROJECT_ID>/locations/europe-west1/jobs/sports-etl-job:run" \
+  --http-method POST \
+  --oauth-service-account-email sports-etl-sa@<PROJECT_ID>.iam.gserviceaccount.com
+```
+
+This triggers the job every Monday at 09:00 UTC. Adjust the cron expression for a different cadence.
 
 ---
 
 ## Assumptions and Limitations
 
-- **Season** is hardcoded to `2023` in `config/settings.py`. Changing it requires a config update.
+- **Season** is hardcoded to `2023` in `config/consts.py`. Changing it requires a config update.
 - **API-Football free tier** returns a mid-season snapshot (~34 gameweeks) rather than the full 38-game season, and does
   not filter reliably by `season_id`. This is a known free-tier limitation; the assignment explicitly allows it.
 - **Team ID mismatch** — `team_id` values differ between the two sources and cannot be used to join the two tables

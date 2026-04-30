@@ -55,14 +55,8 @@ class FootballAPIExtractor:
             )
             response.raise_for_status()
             data = response.json()
-            name = config['name']
-            if name.startswith('api-sports'):
-                return data.get('response')
-            if name.startswith('api-football'):
-                if isinstance(data, dict) and 'error' in data:
-                    logger.warning(f"{name} error: {data.get('message')}")
-                    return None
-            return data
+            unwrap = config.get('unwrap')
+            return unwrap(data) if unwrap else data
         except JSONDecodeError as e:
             logger.warning(f"Malformed JSON from {config['name']}: {e}")
             return None
