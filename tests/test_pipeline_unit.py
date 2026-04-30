@@ -13,8 +13,8 @@ from etl.extract.api_football_extractor import ApiFootballExtractor
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.pipeline import ETLPipeline
 from etl.transform.standard_schema import FINAL_COLUMNS
-from etl.monitoring.run_logger import RunLogger
-from etl.utils.validation import validate_dataframe
+from utils.run_logger import RunLogger
+from utils.validation import validate_dataframe
 
 
 # ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ class TestAddMetadata:
 
 
 # ---------------------------------------------------------------------------
-# validate_dataframe (etl/utils/validation.py)
+# validate_dataframe (utils/validation.py)
 # ---------------------------------------------------------------------------
 
 class TestValidateDataframe:

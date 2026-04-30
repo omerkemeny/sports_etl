@@ -1,7 +1,7 @@
 import sys
 
 from etl.pipeline import ETLPipeline
-from etl.utils.logger import setup_logging
+from utils.logger import setup_logging
 
 setup_logging()
 

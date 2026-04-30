@@ -11,10 +11,10 @@ from etl.transform.api_sports_transformer import ApiSportsTransformer
 from etl.transform.api_football_transformer import ApiFootballTransformer
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
-from etl.monitoring.run_logger import RunLogger
+from utils.run_logger import RunLogger
 from config.consts import SEASON
 from etl.transform.standard_schema import FINAL_COLUMNS, SCHEMA_VERSION
-from etl.utils.validation import validate_dataframe
+from utils.validation import validate_dataframe
 
 logger = logging.getLogger(__name__)
 
