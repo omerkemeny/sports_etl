@@ -14,7 +14,7 @@ from google.cloud import bigquery
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from etl.transform.standard_schema import FINAL_COLUMNS
+from config.consts import FINAL_COLUMNS
 from config.settings import APIConfig
 
 TABLES    = ["api_sports_standardized", "api_football_standardized"]

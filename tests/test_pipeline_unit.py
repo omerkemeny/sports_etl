@@ -12,7 +12,7 @@ from config.consts import SEASON, REQUIRED_COLUMNS
 from etl.extract.api_football_extractor import ApiFootballExtractor
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.pipeline import ETLPipeline
-from etl.transform.standard_schema import FINAL_COLUMNS
+from config.consts import FINAL_COLUMNS
 from utils.run_logger import RunLogger
 from utils.validation import validate_dataframe
 

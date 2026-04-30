@@ -13,7 +13,7 @@ from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
 from utils.run_logger import RunLogger
 from config.consts import SEASON
-from etl.transform.standard_schema import FINAL_COLUMNS, SCHEMA_VERSION
+from config.consts import FINAL_COLUMNS, SCHEMA_VERSION
 from utils.validation import validate_dataframe
 
 logger = logging.getLogger(__name__)

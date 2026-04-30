@@ -1,5 +1,5 @@
 import pandas as pd
-from etl.transform.standard_schema import STANDINGS_COLUMNS, TEAMS_COLUMNS
+from config.consts import STANDINGS_COLUMNS, TEAMS_COLUMNS
 
 
 class ApiSportsTransformer:

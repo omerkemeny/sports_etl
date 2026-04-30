@@ -7,7 +7,7 @@ import pytest
 from google.cloud import bigquery
 
 from config.settings import APIConfig
-from etl.transform.standard_schema import FINAL_COLUMNS
+from config.consts import FINAL_COLUMNS
 
 _cfg = APIConfig()
 
