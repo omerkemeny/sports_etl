@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 
-from config.settings import REQUIRED_COLUMNS
+from config.consts import REQUIRED_COLUMNS
 
 logger = logging.getLogger(__name__)
 

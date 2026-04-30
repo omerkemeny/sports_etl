@@ -12,6 +12,7 @@ from etl.transform.api_football_transformer import ApiFootballTransformer
 from etl.load.bigquery_loader import BigQueryLoader
 from etl.load.csv_loader import CsvLoader
 from etl.monitoring.run_logger import RunLogger
+from config.consts import SEASON
 from etl.transform.standard_schema import FINAL_COLUMNS, SCHEMA_VERSION
 from etl.utils.validation import validate_dataframe
 
@@ -79,7 +80,7 @@ class ETLPipeline:
         df = df.copy()
         df["run_id"]        = self._run_logger.run_id
         df["schema_version"] = SCHEMA_VERSION
-        df["season"]        = APIConfig.SEASON
+        df["season"]        = SEASON
         df["last_updated"]  = pd.Timestamp.utcnow().floor("s")
         return df[FINAL_COLUMNS]
 
