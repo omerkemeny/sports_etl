@@ -1,6 +1,8 @@
 .venv/
 .idea/
 .claude/
+CLAUDE.md
+assignment/
 __pycache__/
 *.pyc
 *.pyo
