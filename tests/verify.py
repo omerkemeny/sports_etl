@@ -4,7 +4,7 @@ Runs the pipeline twice — once in CSV mode, once in BigQuery mode —
 and checks that outputs are correct.
 
 Usage:
-    python verify.py
+    python tests/verify.py
 """
 import os
 import sys
@@ -12,7 +12,7 @@ import subprocess
 import pandas as pd
 from google.cloud import bigquery
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.consts import FINAL_COLUMNS
 from config.settings import APIConfig
