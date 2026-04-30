@@ -1,3 +1,4 @@
+
 -- BigQuery DDL — Premier League standings schema
 -- Dataset: sports_etl
 -- Project: sports-etl-494718
