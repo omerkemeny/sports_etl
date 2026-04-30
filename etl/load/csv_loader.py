@@ -1,10 +1,10 @@
 import logging
-from pathlib import Path
+
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+from config.consts import EXPORTS_DIR
 
-EXPORTS_DIR = Path(__file__).resolve().parent.parent.parent / "exports"
+logger = logging.getLogger(__name__)
 
 
 class CsvLoader:
